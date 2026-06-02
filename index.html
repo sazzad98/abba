@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OneSignal Custom Push Notification</title>
+    <title>ABBAA Push Notification</title>
     
     <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
     
@@ -11,46 +11,67 @@
       window.OneSignalDeferred = window.OneSignalDeferred || [];
       OneSignalDeferred.push(async function(OneSignal) {
         await OneSignal.init({
-          appId: "d171d20d-0112-49fb-a48f-0a417744fd06",
-          safari_web_id: "web.onesignal.auto.2b9eaa60-5747-4249-a27c-f48aa9ddca65",
+          appId: "3eb4cacc-5afe-45f3-9793-e761fb0d41d7", // আপনার নতুন App ID
           notifyButton: {
-            enable: false, // ডিফল্ট বেল আইকনটি বন্ধ করে দিলাম যাতে আপনার বাটনটি মূল ফোকাসে থাকে
+            enable: false, // ওয়ানসিগনালের ডিফল্ট বেল আইকন বন্ধ রাখা হয়েছে
           },
-          allowLocalhostAsSecureOrigin: true,
         });
+
+        # ইউজার যদি আগে থেকেই সাবস্ক্রাইবড থাকে, তবে পেজ লোড হলেই বাটন আপডেট হয়ে যাবে
+        checkSubscriptionStatus();
       });
 
-      // বাটনে ক্লিক করলে এই ফাংশনটি রান করবে
-      async function triggerPushNotification() {
+      // সাবস্ক্রিপশন স্ট্যাটাস চেক এবং বাটন আপডেট করার ফাংশন
+      async function checkSubscriptionStatus() {
         window.OneSignalDeferred = window.OneSignalDeferred || [];
         OneSignalDeferred.push(async function(OneSignal) {
+          const isSubscribed = await OneSignal.User.PushSubscription.id;
+          const btn = document.getElementById("sub-btn");
+          
+          if (isSubscribed) {
+            btn.innerHTML = "🎉 Subscribed Successfully!";
+            btn.style.backgroundColor = "#28a745"; // সবুজ কালার
+            btn.disabled = true; // বাটনটি ডিজেবল করে দেওয়া হলো
+          }
+        });
+      }
+
+      // বাটনে ক্লিক করলে নোটিফিকেশন পারমিশন চাওয়ার ফাংশন
+      async function triggerSubscription() {
+        window.OneSignalDeferred = window.OneSignalDeferred || [];
+        OneSignalDeferred.push(async function(OneSignal) {
+          const btn = document.getElementById("sub-btn");
+          
+          if (OneSignal.Notifications.isPushSupported()) {
+            btn.innerHTML = "Connecting...";
             
-            // প্রথমে চেক করবে ইউজার অলরেডি পারমিশন দিয়েছে কিনা
-            const isPushSupported = OneSignal.Notifications.isPushSupported();
+            // ইউজারের কাছে পপ-আপ পারমিশন চাইবে
+            await OneSignal.Notifications.requestPermission();
             
-            if (isPushSupported) {
-                // ব্রাউজারে নোটিফিকেশন দেখানোর কাস্টম প্রম্পট বা পারমিশন চাইবে
-                await OneSignal.Notifications.requestPermission();
-                
-                // ইউজার যদি অলরেডি সাবস্ক্রাইবড থাকে
-                if (OneSignal.Notifications.permission) {
-                    alert("নোটিফিকেশন পারমিশন একটিভ হয়েছে! এবার OneSignal ড্যাশবোর্ড থেকে মেসেজ পাঠিয়ে টেস্ট করুন।");
-                }
+            // পারমিশন স্ট্যাটাস চেক করে বাটন টেক্সট চেঞ্জ করবে
+            if (OneSignal.Notifications.permission) {
+              btn.innerHTML = "🎉 Subscribed Successfully!";
+              btn.style.backgroundColor = "#28a745";
+              btn.disabled = true;
             } else {
-                alert("আপনার ব্রাউজারে পুশ নোটিফিকেশন সাপোর্ট করছে না।");
+              btn.innerHTML = "❌ Permission Denied";
+              btn.style.backgroundColor = "#dc3545"; // লাল কালার
             }
+          } else {
+            alert("This browser does not support push notifications.");
+          }
         });
       }
     </script>
 </head>
-<body>
+<body style="font-family: Arial, sans-serif; background-color: #f4f7f6; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0;">
 
-    <div style="text-align: center; margin-top: 100px; font-family: Arial, sans-serif;">
-        <h2>OneSignal Push Notification Test</h2>
-        <p>ডেস্কটপে নোটিফিকেশন পেতে নিচের বাটনে ক্লিক করুন:</p>
+    <div style="text-align: center; background: white; padding: 40px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+        <h2 style="color: #333; margin-bottom: 20px;">ABBAA Notification Service</h2>
+        <p style="color: #666; margin-bottom: 30px;">নিচের বাটনে ক্লিক করে নোটিফিকেশন সাবস্ক্রাইব করুন।</p>
         
-        <button onclick="triggerPushNotification()" style="padding: 12px 24px; font-size: 16px; cursor: pointer; background-color: #007bff; color: white; border: none; border-radius: 5px; font-weight: bold;">
-            Enable Push Notification
+        <button id="sub-btn" onclick="triggerSubscription()" style="padding: 14px 28px; font-size: 16px; font-weight: bold; cursor: pointer; background-color: #007bff; color: white; border: none; border-radius: 5px; transition: all 0.3s ease;">
+            Subscribe Now
         </button>
     </div>
 
