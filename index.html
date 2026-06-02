@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OneSignal Custom Push Notification</title>
+    
+    <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+    
+    <script>
+      window.OneSignalDeferred = window.OneSignalDeferred || [];
+      OneSignalDeferred.push(async function(OneSignal) {
+        await OneSignal.init({
+          appId: "d171d20d-0112-49fb-a48f-0a417744fd06",
+          safari_web_id: "web.onesignal.auto.2b9eaa60-5747-4249-a27c-f48aa9ddca65",
+          notifyButton: {
+            enable: false, // ডিফল্ট বেল আইকনটি বন্ধ করে দিলাম যাতে আপনার বাটনটি মূল ফোকাসে থাকে
+          },
+          allowLocalhostAsSecureOrigin: true,
+        });
+      });
+
+      // বাটনে ক্লিক করলে এই ফাংশনটি রান করবে
+      async function triggerPushNotification() {
+        window.OneSignalDeferred = window.OneSignalDeferred || [];
+        OneSignalDeferred.push(async function(OneSignal) {
+            
+            // প্রথমে চেক করবে ইউজার অলরেডি পারমিশন দিয়েছে কিনা
+            const isPushSupported = OneSignal.Notifications.isPushSupported();
+            
+            if (isPushSupported) {
+                // ব্রাউজারে নোটিফিকেশন দেখানোর কাস্টম প্রম্পট বা পারমিশন চাইবে
+                await OneSignal.Notifications.requestPermission();
+                
+                // ইউজার যদি অলরেডি সাবস্ক্রাইবড থাকে
+                if (OneSignal.Notifications.permission) {
+                    alert("নোটিফিকেশন পারমিশন একটিভ হয়েছে! এবার OneSignal ড্যাশবোর্ড থেকে মেসেজ পাঠিয়ে টেস্ট করুন।");
+                }
+            } else {
+                alert("আপনার ব্রাউজারে পুশ নোটিফিকেশন সাপোর্ট করছে না।");
+            }
+        });
+      }
+    </script>
+</head>
+<body>
+
+    <div style="text-align: center; margin-top: 100px; font-family: Arial, sans-serif;">
+        <h2>OneSignal Push Notification Test</h2>
+        <p>ডেস্কটপে নোটিফিকেশন পেতে নিচের বাটনে ক্লিক করুন:</p>
+        
+        <button onclick="triggerPushNotification()" style="padding: 12px 24px; font-size: 16px; cursor: pointer; background-color: #007bff; color: white; border: none; border-radius: 5px; font-weight: bold;">
+            Enable Push Notification
+        </button>
+    </div>
+
+</body>
+</html>
