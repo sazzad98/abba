@@ -1,0 +1,1047 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0084ff">
+<title>কুইজ চ্যাট</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --page: #e9ebee;
+    --bg: #ffffff;
+    --surface: #ffffff;
+    --bot: #eceef2;
+    --text: #1c1e21;
+    --muted: #65676b;
+    --line: #e4e6eb;
+    --accent: #0a7cff;
+    --accent-2: #6a5cff;
+    --ok: #1f9d55;
+    --bad: #d93a4a;
+    --c-bn: #1f9d55;
+    --c-en: #0a7cff;
+    --c-math: #f08a1c;
+    --c-gk: #8a4dff;
+    --c-bcs: #e0457b;
+    --c-oth: #1e9fa0;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --page: #0e0f10;
+      --bg: #18191a;
+      --surface: #242526;
+      --bot: #3a3b3c;
+      --text: #e4e6eb;
+      --muted: #a8abb0;
+      --line: #3e4042;
+      --accent: #4da3ff;
+      --accent-2: #8a7dff;
+      --ok: #3ac27a;
+      --bad: #ff6b78;
+    }
+  }
+
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  html, body { margin: 0; }
+  body {
+    min-height: 100dvh;
+    font-family: "Hind Siliguri", "Noto Sans Bengali", system-ui, -apple-system, "Segoe UI", sans-serif;
+    background: var(--page);
+    color: var(--text);
+    -webkit-font-smoothing: antialiased;
+  }
+  button, input { font: inherit; color: inherit; }
+  :focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+  /* ---------- App shell ---------- */
+  .app {
+    height: 100dvh;
+    max-width: 520px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    background: var(--bg);
+    overflow: hidden;
+  }
+  @media (min-width: 560px) {
+    .app {
+      height: min(880px, calc(100dvh - 32px));
+      margin: 16px auto;
+      border-radius: 22px;
+      box-shadow: 0 18px 50px rgba(0, 0, 0, .18);
+    }
+  }
+
+  /* ---------- Top bar ---------- */
+  .topbar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: calc(env(safe-area-inset-top, 0px) + 10px) 12px 10px;
+    border-bottom: 1px solid var(--line);
+    background: var(--bg);
+    flex: none;
+  }
+  .icon-btn {
+    width: 38px; height: 38px;
+    border: 0; border-radius: 50%;
+    background: transparent;
+    color: var(--accent);
+    display: grid; place-items: center;
+    cursor: pointer;
+  }
+  .icon-btn:hover { background: var(--bot); }
+  .av {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    flex: none;
+    display: grid; place-items: center;
+    background: linear-gradient(135deg, #0a7cff, #a334fa 60%, #ff6968);
+  }
+  .av.lg { width: 42px; height: 42px; }
+  .who { flex: 1; min-width: 0; line-height: 1.2; }
+  .who b { display: block; font-weight: 600; font-size: 17px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .who span { font-size: 13px; color: var(--muted); display: inline-flex; align-items: center; gap: 6px; }
+  .who span.live::before {
+    content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--ok);
+  }
+  .end-btn {
+    border: 1.5px solid var(--bad);
+    color: var(--bad);
+    background: transparent;
+    border-radius: 999px;
+    padding: 5px 16px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .end-btn:hover { background: var(--bad); color: #fff; }
+
+  /* ---------- Home ---------- */
+  .home { flex: 1; overflow-y: auto; padding: 18px 0 24px; }
+  .home .hello { padding: 0 16px 16px; display: flex; gap: 8px; align-items: flex-end; }
+  .tiles {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    padding: 0 16px;
+  }
+  .tile {
+    text-align: left;
+    background: var(--surface);
+    border: 1.5px solid var(--line);
+    border-radius: 18px;
+    padding: 16px 14px 14px;
+    display: flex; flex-direction: column; gap: 12px;
+    cursor: pointer;
+  }
+  .tile:hover { border-color: var(--c); }
+  .tile .glyph {
+    width: 46px; height: 46px; border-radius: 50%;
+    display: grid; place-items: center;
+    background: var(--c); color: #fff;
+    font-weight: 700; font-size: 20px;
+  }
+  .tile b { display: block; font-size: 18px; font-weight: 600; line-height: 1.25; }
+  .tile small { display: block; color: var(--muted); font-size: 14px; margin-top: 2px; }
+  .note {
+    margin: 18px 16px 0;
+    padding: 10px 14px;
+    border-radius: 14px;
+    background: var(--bot);
+    color: var(--muted);
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  /* ---------- Chat ---------- */
+  .chat { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+  .log {
+    flex: 1;
+    overflow-y: auto;
+    padding: 14px 12px 8px;
+    display: flex; flex-direction: column; gap: 4px;
+    overscroll-behavior: contain;
+  }
+  .row { display: flex; align-items: flex-end; gap: 8px; }
+  .row.me { justify-content: flex-end; margin-top: 6px; }
+  .row.bot { margin-top: 6px; }
+  .row.bot.cont { margin-top: 0; }
+  .row.bot.cont .av { visibility: hidden; }
+  .bubble {
+    max-width: 82%;
+    padding: 9px 14px;
+    border-radius: 18px;
+    line-height: 1.55;
+    font-size: 16.5px;
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+  }
+  .row.bot .bubble { background: var(--bot); border-bottom-left-radius: 6px; }
+  .row.me .bubble {
+    color: #fff;
+    background: linear-gradient(135deg, #0a7cff, var(--accent-2));
+    border-bottom-right-radius: 6px;
+  }
+  .qno { display: block; font-size: 13px; color: var(--muted); margin-bottom: 2px; }
+  .fb b { display: block; font-weight: 600; }
+  .fb.good b { color: var(--ok); }
+  .fb.bad b { color: var(--bad); }
+
+  .opts {
+    display: flex; flex-direction: column; align-items: flex-start; gap: 6px;
+    margin: 6px 0 2px 36px;
+  }
+  .opt {
+    text-align: left;
+    max-width: 100%;
+    border: 1.5px solid var(--accent);
+    color: var(--accent);
+    background: transparent;
+    border-radius: 18px;
+    padding: 8px 15px;
+    line-height: 1.45;
+    cursor: pointer;
+    overflow-wrap: anywhere;
+  }
+  .opt:hover:not(:disabled) { background: color-mix(in srgb, var(--accent) 12%, transparent); }
+  .opt:disabled { cursor: default; }
+  .opt.right  { background: var(--ok);  border-color: var(--ok);  color: #fff; }
+  .opt.wrong  { background: var(--bad); border-color: var(--bad); color: #fff; }
+  .opt.reveal { border-color: var(--ok); color: var(--ok); border-width: 2px; }
+  .opt.dim    { opacity: .5; }
+
+  .dots { display: flex; gap: 4px; align-items: center; padding: 14px 16px; }
+  .dots i {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--muted);
+    animation: blink 1.1s infinite ease-in-out;
+  }
+  .dots i:nth-child(2) { animation-delay: .15s; }
+  .dots i:nth-child(3) { animation-delay: .3s; }
+  @keyframes blink { 0%, 80%, 100% { opacity: .25; } 40% { opacity: 1; } }
+
+  /* ---------- Score card ---------- */
+  .card { min-width: 240px; }
+  .card h3 { margin: 0 0 2px; font-size: 18px; font-weight: 700; }
+  .card .sub { color: var(--muted); font-size: 14px; margin-bottom: 12px; }
+  .card .top { display: flex; align-items: center; gap: 16px; }
+  .ring {
+    --p: 0;
+    width: 92px; height: 92px; border-radius: 50%; flex: none;
+    background: conic-gradient(var(--ok) calc(var(--p) * 1%), var(--line) 0);
+    display: grid; place-items: center;
+    position: relative;
+  }
+  .ring::before {
+    content: ""; position: absolute; inset: 9px; border-radius: 50%; background: var(--bot);
+  }
+  .ring span { position: relative; font-weight: 700; font-size: 20px; }
+  .stats { flex: 1; display: grid; gap: 4px; font-size: 15.5px; }
+  .stats div { display: flex; justify-content: space-between; gap: 12px; }
+  .stats b { font-weight: 600; }
+  .card p { margin: 12px 0 0; }
+  .card .hint { color: var(--muted); font-size: 13.5px; margin-top: 6px; }
+  .btns { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px; }
+  .btn {
+    border: 0; border-radius: 999px; padding: 9px 18px; font-weight: 600; cursor: pointer;
+    background: var(--surface); color: var(--accent); border: 1.5px solid var(--accent);
+  }
+  .btn.primary { background: linear-gradient(135deg, #0a7cff, var(--accent-2)); color: #fff; border-color: transparent; }
+
+  /* ---------- Composer ---------- */
+  .composer {
+    display: flex; gap: 8px; align-items: center;
+    padding: 8px 12px calc(env(safe-area-inset-bottom, 0px) + 10px);
+    border-top: 1px solid var(--line);
+    background: var(--bg);
+    flex: none;
+  }
+  .composer input {
+    flex: 1; min-width: 0;
+    border: 0; border-radius: 999px;
+    background: var(--bot);
+    padding: 11px 16px;
+    font-size: 16px;
+  }
+  .composer input::placeholder { color: var(--muted); }
+  .composer input:disabled { opacity: .6; }
+  .send {
+    width: 42px; height: 42px; border: 0; border-radius: 50%;
+    display: grid; place-items: center; cursor: pointer; flex: none;
+    color: #fff; background: linear-gradient(135deg, #0a7cff, var(--accent-2));
+  }
+  .send:disabled { opacity: .4; cursor: default; }
+
+
+  /* ---------- Search + sections ---------- */
+  .search-wrap { padding: 0 16px 14px; }
+  .search {
+    width: 100%;
+    border: 1.5px solid var(--line);
+    border-radius: 999px;
+    background: var(--bot);
+    padding: 10px 16px 10px 40px;
+    font-size: 16px;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%2365676b' stroke-width='2.4' stroke-linecap='round'><circle cx='11' cy='11' r='7'/><path d='m20 20-3.5-3.5'/></svg>");
+    background-repeat: no-repeat;
+    background-position: 14px 50%;
+  }
+  .search::placeholder { color: var(--muted); }
+  .sec { margin-top: 22px; padding: 0 16px; }
+  .sec-h {
+    display: flex; align-items: center; gap: 8px;
+    font-weight: 700; font-size: 16px; margin: 0 2px 10px;
+  }
+  .sec-h i {
+    font-style: normal; font-weight: 600; font-size: 12.5px;
+    color: var(--muted); background: var(--bot);
+    border-radius: 999px; padding: 1px 9px;
+  }
+  .list { display: flex; flex-direction: column; gap: 8px; }
+  .item {
+    width: 100%; text-align: left;
+    display: flex; align-items: center; gap: 12px;
+    background: var(--surface);
+    border: 1.5px solid var(--line);
+    border-radius: 16px;
+    padding: 10px 12px;
+    cursor: pointer;
+  }
+  .item:hover { border-color: var(--c); }
+  .item .glyph {
+    width: 38px; height: 38px; border-radius: 50%; flex: none;
+    display: grid; place-items: center;
+    background: var(--c); color: #fff; font-weight: 700; font-size: 15px;
+  }
+  .item .txt { flex: 1; min-width: 0; }
+  .item .txt b { display: block; font-weight: 600; font-size: 16px; overflow-wrap: anywhere; line-height: 1.3; }
+  .item .txt small { display: block; color: var(--muted); font-size: 13px; }
+  .added-date {
+    flex: none; align-self: flex-start;
+    font-size: 12px; color: var(--muted); white-space: nowrap;
+    background: var(--bot); border-radius: 999px; padding: 2px 9px;
+  }
+  .more {
+    margin-top: 8px; width: 100%;
+    border: 1.5px dashed var(--line); border-radius: 14px;
+    background: transparent; color: var(--accent);
+    padding: 9px; font-weight: 600; cursor: pointer;
+  }
+  .more:hover { background: var(--bot); }
+  .state-msg {
+    margin: 18px 16px 0; padding: 12px 14px; border-radius: 14px;
+    background: var(--bot); color: var(--muted); font-size: 14.5px; line-height: 1.5;
+  }
+  .state-msg .btn { margin-top: 10px; display: inline-block; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .dots i { animation: none; opacity: .6; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header class="topbar">
+    <button class="icon-btn" id="backBtn" type="button" aria-label="হোমে ফিরুন" hidden>
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15.5 4.5 8 12l7.5 7.5"/></svg>
+    </button>
+    <span class="av lg" id="topAvatar"></span>
+    <div class="who">
+      <b id="title">কুইজ চ্যাট</b>
+      <span class="live" id="status">অনলাইন</span>
+    </div>
+    <button class="end-btn" id="endBtn" type="button" hidden>End</button>
+  </header>
+
+  <!-- Home -->
+  <main class="home" id="home">
+    <div class="hello">
+      <span class="av"></span>
+      <div class="bubble" style="background:var(--bot);border-bottom-left-radius:6px;">হ্যালো! আমি কুইজ বট। কোন বিষয়ে খেলতে চাও?</div>
+    </div>
+    <div class="search-wrap">
+      <input class="search" id="search" type="search" placeholder="সাবজেক্ট বা শিটের নাম খুঁজুন (যেমন BCS-35)" aria-label="সাবজেক্ট বা শিটের নাম খুঁজুন" autocomplete="off">
+    </div>
+    <div class="tiles" id="tiles"></div>
+    <div id="sections"></div>
+    <div class="note" id="demoNote" hidden>
+      ডেমো মোড: নমুনা প্রশ্ন দেখানো হচ্ছে। নিজের শিটের প্রশ্ন পেতে এই ফাইলের <b>API_URL</b>-এ Google Apps Script Web App-এর লিংক বসান।
+    </div>
+  </main>
+
+  <!-- Chat -->
+  <section class="chat" id="chat" hidden>
+    <div class="log" id="log" role="log" aria-live="polite" aria-relevant="additions"></div>
+    <form class="composer" id="composer" autocomplete="off">
+      <input id="input" type="text" inputmode="text" enterkeyhint="send" aria-label="উত্তর লিখুন" placeholder="a, b, c বা d লিখুন">
+      <button class="send" id="sendBtn" type="submit" aria-label="পাঠান">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3 20.5v-6.8l11-1.7-11-1.7V3.5L22 12 3 20.5z"/></svg>
+      </button>
+    </form>
+  </section>
+
+</div>
+
+<script>
+(() => {
+  "use strict";
+
+  /* =========================================================
+     CONFIG — only edit this block
+     ========================================================= */
+  const CONFIG = {
+    // Paste your Google Apps Script Web App URL (ends with /exec)
+    API_URL: "https://script.google.com/macros/s/AKfycbxE3RfOVGKDZBc1K0r5bgmPoA8nhPcmvwCCjCKNblL9-tGPD0T7W2gvhPvqAU-wXcD6/exec",
+    // "random" or "sequential"
+    MODE: "random",
+    // How many questions to load at a time
+    BATCH_SIZE: 30,
+    // Delay between an answer and the next question
+    NEXT_DELAY_MS: 2000
+  };
+
+  // "key" must match the sheet tab name exactly
+  const SUBJECTS = [
+    { key: "Bangla",            label: "বাংলা",        hint: "ভাষা ও সাহিত্য", glyph: "অ",  color: "var(--c-bn)" },
+    { key: "English",           label: "English",     hint: "Grammar & vocabulary", glyph: "Aa", color: "var(--c-en)" },
+    { key: "Math",              label: "গণিত",         hint: "অঙ্ক ও যুক্তি",   glyph: "∑",  color: "var(--c-math)" },
+    { key: "General Knowledge", label: "সাধারণ জ্ঞান", hint: "দেশ ও বিশ্ব",    glyph: "?",  color: "var(--c-gk)" }
+  ];
+
+  // Used only when API_URL is not set (preview mode)
+  const DEMO = {
+    "Bangla": [
+      { q: "বাংলাদেশের জাতীয় ফুল কোনটি?", o: ["শাপলা", "গোলাপ", "গাঁদা", "শিউলি"], a: 0 },
+      { q: "\"আমার সোনার বাংলা\" গানটির রচয়িতা কে?", o: ["কাজী নজরুল ইসলাম", "রবীন্দ্রনাথ ঠাকুর", "জীবনানন্দ দাশ", "সুকান্ত ভট্টাচার্য"], a: 1 }
+    ],
+    "English": [
+      { q: "Choose the correct word: She ___ to school every day.", o: ["go", "going", "goes", "gone"], a: 2 },
+      { q: "What is the plural of \"child\"?", o: ["childs", "children", "childrens", "childes"], a: 1 }
+    ],
+    "Math": [
+      { q: "12 × 8 = ?", o: ["86", "96", "106", "98"], a: 1 },
+      { q: "200-এর ১৫% কত?", o: ["20", "25", "30", "35"], a: 2 }
+    ],
+    "General Knowledge": [
+      { q: "সৌরজগতের বৃহত্তম গ্রহ কোনটি?", o: ["পৃথিবী", "মঙ্গল", "বৃহস্পতি", "শুক্র"], a: 2 },
+      { q: "জাতিসংঘ প্রতিষ্ঠিত হয় কত সালে?", o: ["১৯১৯", "১৯৪৫", "১৯৫০", "১৯৬০"], a: 1 }
+    ]
+  };
+
+  /* ========================================================= */
+
+  const LABELS = ["a", "b", "c", "d"];
+  const DEMO_MODE = !CONFIG.API_URL || /^PASTE_/i.test(CONFIG.API_URL);
+  const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  const AV_SVG = '<svg viewBox="0 0 24 24" width="16" height="16" fill="#fff" aria-hidden="true"><path d="M12 3C6.9 3 3 6.6 3 11.1c0 2.5 1.2 4.7 3.1 6.2V21l3.1-1.7c.9.2 1.8.4 2.8.4 5.1 0 9-3.6 9-8.1S17.1 3 12 3z"/></svg>';
+
+  const $ = (s) => document.querySelector(s);
+  const home = $("#home"), chat = $("#chat"), log = $("#log");
+  const input = $("#input"), sendBtn = $("#sendBtn"), form = $("#composer");
+  const backBtn = $("#backBtn"), endBtn = $("#endBtn");
+  const titleEl = $("#title"), statusEl = $("#status");
+
+  const bn = (n) => String(n).replace(/\d/g, (d) => "০১২৩৪৫৬৭৮৯"[d]);
+
+  const state = {
+    view: "home",
+    subject: null,
+    queue: [],
+    offset: 0,
+    seed: 0,
+    exhausted: false,
+    current: null,
+    lastId: null,
+    answered: 0,
+    correct: 0,
+    active: false,
+    token: 0,
+    timers: [],
+    typing: null,
+    sheets: { bcs: [], others: [] },
+    sheetsStatus: "idle",
+    sheetsError: "",
+    expanded: { bcs: false, others: false },
+    query: ""
+  };
+
+  /* ---------- tiny helpers ---------- */
+  function later(ms, fn) {
+    state.timers.push(setTimeout(fn, ms));
+  }
+  function clearTimers() {
+    state.timers.forEach(clearTimeout);
+    state.timers = [];
+  }
+  function shuffle(a) {
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+  function scrollEnd() {
+    log.scrollTo({ top: log.scrollHeight, behavior: reduceMotion ? "auto" : "smooth" });
+  }
+
+  /* ---------- chat rendering ---------- */
+  function rowEl(kind) {
+    const prev = log.lastElementChild;
+    const r = document.createElement("div");
+    r.className = "row " + kind + (kind === "bot" && prev && prev.classList.contains("bot") ? " cont" : "");
+    return r;
+  }
+  function avatar() {
+    const a = document.createElement("span");
+    a.className = "av";
+    a.innerHTML = AV_SVG;
+    return a;
+  }
+  function addBot(content) {
+    hideTyping();
+    const r = rowEl("bot");
+    const b = document.createElement("div");
+    b.className = "bubble";
+    if (typeof content === "string") b.textContent = content; else b.append(content);
+    r.append(avatar(), b);
+    log.append(r);
+    scrollEnd();
+    return b;
+  }
+  function addUser(text) {
+    const r = rowEl("me");
+    const b = document.createElement("div");
+    b.className = "bubble";
+    b.textContent = text;
+    r.append(b);
+    log.append(r);
+    scrollEnd();
+  }
+  function showTyping() {
+    if (state.typing) return;
+    const r = rowEl("bot");
+    r.classList.add("typing");
+    const b = document.createElement("div");
+    b.className = "bubble dots";
+    b.setAttribute("aria-label", "বট টাইপ করছে");
+    b.innerHTML = "<i></i><i></i><i></i>";
+    r.append(avatar(), b);
+    log.append(r);
+    state.typing = r;
+    scrollEnd();
+  }
+  function hideTyping() {
+    if (state.typing) { state.typing.remove(); state.typing = null; }
+  }
+
+  function addOptions(cur) {
+    const wrap = document.createElement("div");
+    wrap.className = "opts";
+    wrap.setAttribute("role", "group");
+    wrap.setAttribute("aria-label", "উত্তরের অপশন");
+    cur.btns = cur.options.map((text, i) => {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "opt";
+      b.textContent = `(${LABELS[i]}) ${text}`;
+      b.addEventListener("click", () => answer(i));
+      wrap.append(b);
+      return b;
+    });
+    log.append(wrap);
+    scrollEnd();
+  }
+
+  function setComposer(enabled, placeholder) {
+    input.disabled = !enabled;
+    sendBtn.disabled = !enabled;
+    if (placeholder) input.placeholder = placeholder;
+  }
+
+  /* ---------- views / top bar ---------- */
+  function showView(name) {
+    state.view = name;
+    home.hidden = name !== "home";
+    chat.hidden = name !== "chat";
+    updateTop();
+  }
+  function updateTop() {
+    const inChat = state.view === "chat";
+    backBtn.hidden = !(inChat && !state.active);
+    endBtn.hidden = !(inChat && state.active);
+    titleEl.textContent = inChat && state.subject ? state.subject.label : "কুইজ চ্যাট";
+    statusEl.classList.toggle("live", !inChat || state.active);
+    if (!inChat) statusEl.textContent = "অনলাইন";
+    else if (state.active) statusEl.textContent = `স্কোর ${bn(state.correct)}/${bn(state.answered)}`;
+    else statusEl.textContent = "কুইজ শেষ";
+  }
+
+  /* ---------- data ---------- */
+  async function fetchQuestions(subjectKey) {
+    if (DEMO_MODE) {
+      await new Promise((r) => setTimeout(r, 450));
+      state.exhausted = true;
+      return shuffle(DEMO[subjectKey].map((d, i) => ({
+        id: "demo-" + subjectKey + i, q: d.q, options: d.o, answer: d.a
+      })));
+    }
+    const url = new URL(CONFIG.API_URL);
+    url.searchParams.set("action", "questions");
+    url.searchParams.set("subject", subjectKey);
+    url.searchParams.set("mode", CONFIG.MODE);
+    url.searchParams.set("limit", CONFIG.BATCH_SIZE);
+    url.searchParams.set("offset", state.offset);
+    // no-repeat paging: random uses a per-session seed, sequential does a single pass
+    if (CONFIG.MODE === "random") url.searchParams.set("seed", state.seed);
+    else url.searchParams.set("once", "1");
+
+    const ctrl = new AbortController();
+    const t = setTimeout(() => ctrl.abort(), 25000);
+    try {
+      const res = await fetch(url.toString(), { signal: ctrl.signal });
+      if (!res.ok) throw new Error("সার্ভার সাড়া দেয়নি (" + res.status + ")");
+      const data = await res.json();
+      if (!data.ok) throw new Error(data.error || "অজানা সমস্যা");
+      state.offset = data.nextOffset || 0;
+      // old backend (no hasMore) -> behave as before; new backend -> stop when finished
+      state.exhausted = data.hasMore === false;
+      return data.questions || [];
+    } finally {
+      clearTimeout(t);
+    }
+  }
+
+  async function refill(tok) {
+    const list = await fetchQuestions(state.subject.key);
+    if (tok !== state.token) return false;
+    const q = list.slice();
+    // avoid showing the same question twice in a row at a batch boundary
+    if (q.length > 1 && state.lastId !== null && q[0].id === state.lastId) q.push(q.shift());
+    state.queue = q;
+    return q.length > 0;
+  }
+
+  /* ---------- quiz flow ---------- */
+  function startQuiz(subject) {
+    clearTimers();
+    state.token++;
+    Object.assign(state, {
+      subject, queue: [], offset: 0, seed: Math.floor(Math.random() * 2147483647), exhausted: false, current: null, lastId: null,
+      answered: 0, correct: 0, active: true, typing: null
+    });
+    log.innerHTML = "";
+    showView("chat");
+    setComposer(true, "a, b, c বা d লিখুন");
+    addBot(`চলো শুরু করি! ${subject.label} বিষয়ে প্রশ্ন আসছে।\nঅপশনে ট্যাপ করো, অথবা a, b, c, d লিখে পাঠাও। শেষ করতে উপরের End চাপো।`);
+    askNext();
+  }
+
+  async function askNext() {
+    if (!state.active) return;
+    const tok = state.token;
+
+    if (!state.queue.length) {
+      if (state.exhausted) return finishAll();
+      showTyping();
+      try {
+        const ok = await refill(tok);
+        if (tok !== state.token) return;
+        if (!ok) return state.answered ? finishAll() : showEmpty();
+      } catch (err) {
+        if (tok !== state.token) return;
+        return showError(err);
+      }
+    }
+
+    const q = state.queue.shift();
+    const cur = { id: q.id, q: q.q, options: q.options, answer: q.answer, locked: false, btns: [] };
+    state.current = cur;
+    state.lastId = q.id;
+
+    const box = document.createElement("div");
+    const no = document.createElement("span");
+    no.className = "qno";
+    no.textContent = `প্রশ্ন ${bn(state.answered + 1)}`;
+    const text = document.createElement("div");
+    text.textContent = q.q;
+    box.append(no, text);
+
+    addBot(box);
+    addOptions(cur);
+    if (matchMedia("(pointer: fine)").matches) input.focus({ preventScroll: true });
+  }
+
+  function answer(i) {
+    const cur = state.current;
+    if (!cur || cur.locked || !state.active) return;
+    cur.locked = true;
+
+    const ok = i === cur.answer;
+    state.answered++;
+    if (ok) state.correct++;
+
+    cur.btns.forEach((b, idx) => {
+      b.disabled = true;
+      if (idx === cur.answer) b.classList.add(idx === i ? "right" : "reveal");
+      else if (idx === i) b.classList.add("wrong");
+      else b.classList.add("dim");
+    });
+
+    addUser(`(${LABELS[i]}) ${cur.options[i]}`);
+    updateTop();
+
+    const delay = CONFIG.NEXT_DELAY_MS;
+    later(250, showTyping);
+    later(Math.min(800, delay - 600), () => addBot(feedbackNode(ok, cur)));
+    later(Math.max(delay - 450, 900), showTyping);
+    later(delay, askNext);
+  }
+
+  function feedbackNode(ok, cur) {
+    const d = document.createElement("div");
+    d.className = "fb " + (ok ? "good" : "bad");
+    const h = document.createElement("b");
+    h.textContent = ok ? "✅ সঠিক হয়েছে!" : "❌ ভুল হয়েছে।";
+    const p = document.createElement("div");
+    p.textContent = `${ok ? "উত্তর" : "সঠিক উত্তর"}: (${LABELS[cur.answer]}) ${cur.options[cur.answer]}`;
+    d.append(h, p);
+    return d;
+  }
+
+  function endQuiz() {
+    if (!state.active) return;
+    state.active = false;
+    state.token++;
+    clearTimers();
+    hideTyping();
+
+    const cur = state.current;
+    if (cur && !cur.locked) {
+      cur.locked = true;
+      cur.btns.forEach((b) => { b.disabled = true; b.classList.add("dim"); });
+    }
+    state.current = null;
+
+    addUser("End");
+    updateTop();
+    setComposer(false, "কুইজ শেষ হয়েছে");
+    showTyping();
+    later(550, () => addBot(summaryNode()));
+  }
+
+  // every question of this subject has been asked once -> stop (no repeats)
+  function finishAll() {
+    state.active = false;
+    state.token++;
+    clearTimers();
+    hideTyping();
+    state.current = null;
+    updateTop();
+    setComposer(false, "কুইজ শেষ হয়েছে");
+    addBot("🎉 এই বিষয়ের সব প্রশ্ন শেষ! আর কোনো প্রশ্ন বাকি নেই।");
+    showTyping();
+    later(550, () => addBot(summaryNode()));
+  }
+
+  function summaryNode() {
+    const total = state.answered, ok = state.correct, wrong = total - ok;
+    const pct = total ? Math.round((ok * 100) / total) : 0;
+    const msg = !total ? "এবার কোনো প্রশ্নের উত্তর দেওয়া হয়নি।"
+      : pct >= 80 ? "দারুণ খেলেছ! চালিয়ে যাও।"
+      : pct >= 50 ? "ভালো হয়েছে। আরেকবার খেললে আরও ভালো হবে।"
+      : "অনুশীলন চালিয়ে যাও, পরের বার আরও ভালো করবে।";
+
+    const card = document.createElement("div");
+    card.className = "card";
+    card.innerHTML =
+      `<h3>স্কোর কার্ড</h3>
+       <div class="sub">${state.subject.label}</div>
+       <div class="top">
+         <div class="ring" style="--p:${pct}"><span>${bn(pct)}%</span></div>
+         <div class="stats">
+           <div><span>মোট উত্তর</span><b>${bn(total)}</b></div>
+           <div><span>সঠিক</span><b>${bn(ok)}</b></div>
+           <div><span>ভুল</span><b>${bn(wrong)}</b></div>
+         </div>
+       </div>
+       <p>${msg}</p>
+       <div class="hint">উত্তর না দেওয়া প্রশ্ন গণনায় ধরা হয়নি।</div>`;
+
+    const btns = document.createElement("div");
+    btns.className = "btns";
+    const again = document.createElement("button");
+    again.type = "button"; again.className = "btn primary"; again.textContent = "আবার খেলুন";
+    again.addEventListener("click", () => startQuiz(state.subject));
+    const homeBtn = document.createElement("button");
+    homeBtn.type = "button"; homeBtn.className = "btn"; homeBtn.textContent = "বিষয় বদলান";
+    homeBtn.addEventListener("click", goHome);
+    btns.append(again, homeBtn);
+    card.append(btns);
+    return card;
+  }
+
+  function showEmpty() {
+    state.active = false;
+    state.current = null;
+    updateTop();
+    setComposer(false, "কুইজ শেষ হয়েছে");
+    const box = document.createElement("div");
+    box.textContent = "এই বিষয়ে এখনো কোনো প্রশ্ন পাওয়া যায়নি। Google Sheet-এ প্রশ্ন যোগ করে আবার চেষ্টা করুন।";
+    box.append(actionButtons());
+    addBot(box);
+  }
+
+  function showError(err) {
+    state.active = false;
+    state.current = null;
+    updateTop();
+    setComposer(false, "কুইজ শেষ হয়েছে");
+    const box = document.createElement("div");
+    box.textContent = "প্রশ্ন লোড করা যায়নি। ইন্টারনেট বা API লিংক ঠিক আছে কি না দেখুন।";
+    const small = document.createElement("div");
+    small.className = "hint";
+    small.style.cssText = "color:var(--muted);font-size:13.5px;margin-top:6px;";
+    small.textContent = String((err && err.message) || err);
+    box.append(small, actionButtons());
+    addBot(box);
+  }
+
+  function actionButtons() {
+    const btns = document.createElement("div");
+    btns.className = "btns";
+    const retry = document.createElement("button");
+    retry.type = "button"; retry.className = "btn primary"; retry.textContent = "আবার চেষ্টা করুন";
+    retry.addEventListener("click", () => startQuiz(state.subject));
+    const h = document.createElement("button");
+    h.type = "button"; h.className = "btn"; h.textContent = "হোমে ফিরুন";
+    h.addEventListener("click", goHome);
+    btns.append(retry, h);
+    return btns;
+  }
+
+  function goHome() {
+    state.active = false;
+    state.token++;
+    clearTimers();
+    hideTyping();
+    state.current = null;
+    showView("home");
+    loadSheets();
+  }
+
+  /* ---------- typed answers ---------- */
+  const CHOICE = {
+    a: 0, b: 1, c: 2, d: 3,
+    "1": 0, "2": 1, "3": 2, "4": 3,
+    "ক": 0, "খ": 1, "গ": 2, "ঘ": 3,
+    "১": 0, "২": 1, "৩": 2, "৪": 3
+  };
+
+  function handleText(raw) {
+    if (!state.active) return;
+    const text = raw.trim();
+    const compact = text.toLowerCase().replace(/[().\s]/g, "");
+
+    if (["end", "exit", "quit", "শেষ", "বন্ধ"].includes(compact)) return endQuiz();
+
+    const cur = state.current;
+    if (!cur || cur.locked) return;
+
+    // 1) exact option text, 2) letter / number
+    let idx = cur.options.findIndex((o) => o.trim().toLowerCase() === text.toLowerCase());
+    if (idx < 0 && Object.prototype.hasOwnProperty.call(CHOICE, compact)) idx = CHOICE[compact];
+    if (idx >= 0) return answer(idx);
+
+    addUser(text);
+    addBot("a, b, c বা d লিখুন, অথবা কোনো অপশনে ট্যাপ করুন। কুইজ শেষ করতে End লিখুন।");
+  }
+
+  /* ---------- wire up ---------- */
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const v = input.value;
+    input.value = "";
+    if (v.trim()) handleText(v);
+  });
+  endBtn.addEventListener("click", endQuiz);
+  backBtn.addEventListener("click", goHome);
+
+  // avatars
+  $("#topAvatar").innerHTML = AV_SVG.replace('width="16" height="16"', 'width="22" height="22"');
+  document.querySelectorAll(".home .hello .av").forEach((a) => (a.innerHTML = AV_SVG));
+
+  /* ---------- home: main tiles + dynamic sections ---------- */
+  const SECTIONS = [
+    { id: "bcs",    title: "BCS",    color: "var(--c-bcs)", glyph: "B" },
+    { id: "others", title: "Others", color: "var(--c-oth)", glyph: "#" }
+  ];
+  const PREVIEW_COUNT = 6;
+
+  const tiles = $("#tiles"), sectionsEl = $("#sections"), searchEl = $("#search");
+  let sheetsSeq = 0;
+
+  const norm = (t) => String(t || "").toLowerCase().replace(/[\s_\-.]+/g, "");
+  const hit = (text) => !state.query || norm(text).includes(norm(state.query));
+
+  function subjectFromSheet(sec, sh) {
+    return {
+      key: sh.name, label: sh.name,
+      hint: `${bn(sh.total)}টি প্রশ্ন`, glyph: sec.glyph, color: sec.color
+    };
+  }
+
+  function renderTiles() {
+    tiles.innerHTML = "";
+    SUBJECTS.filter((s) => hit(s.label + s.key + s.hint)).forEach((s) => {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "tile";
+      b.style.setProperty("--c", s.color);
+      b.innerHTML = `<span class="glyph" aria-hidden="true">${s.glyph}</span><span><b>${s.label}</b><small>${s.hint}</small></span>`;
+      b.addEventListener("click", () => startQuiz(s));
+      tiles.append(b);
+    });
+  }
+
+  function itemEl(sec, sh) {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "item";
+    b.style.setProperty("--c", sec.color);
+
+    const g = document.createElement("span");
+    g.className = "glyph"; g.setAttribute("aria-hidden", "true");
+    g.textContent = sec.glyph;
+
+    const t = document.createElement("span");
+    t.className = "txt";
+    const nm = document.createElement("b"); nm.textContent = sh.name;
+    const sm = document.createElement("small"); sm.textContent = `${bn(sh.total)}টি প্রশ্ন`;
+    t.append(nm, sm);
+
+    b.append(g, t);
+    // Show the date the sheet was added (only when the real time is known)
+    if (sh.added && sh.added > 1e12) {
+      const d = document.createElement("span");
+      d.className = "added-date";
+      d.textContent = new Date(sh.added).toLocaleDateString("eng", {
+        day: "numeric", month: "short", year: "numeric"
+      });
+      b.append(d);
+    }
+    b.addEventListener("click", () => startQuiz(subjectFromSheet(sec, sh)));
+    return b;
+  }
+
+  function renderSections() {
+    sectionsEl.innerHTML = "";
+    if (DEMO_MODE) return;
+
+    if (state.sheetsStatus === "loading" && !state.sheets.bcs.length && !state.sheets.others.length) {
+      const m = document.createElement("div");
+      m.className = "state-msg"; m.textContent = "শিটের তালিকা লোড হচ্ছে…";
+      sectionsEl.append(m);
+      return;
+    }
+    if (state.sheetsStatus === "error") {
+      const m = document.createElement("div");
+      m.className = "state-msg";
+      m.textContent = "শিটের তালিকা লোড করা যায়নি। " + state.sheetsError;
+      const r = document.createElement("button");
+      r.type = "button"; r.className = "btn primary"; r.textContent = "আবার চেষ্টা করুন";
+      r.addEventListener("click", loadSheets);
+      m.append(document.createElement("br"), r);
+      sectionsEl.append(m);
+      return;
+    }
+
+    let shown = 0;
+    SECTIONS.forEach((sec) => {
+      const all = state.sheets[sec.id] || [];
+      const list = all.filter((sh) => hit(sh.name));
+      if (!list.length) return;
+      shown += list.length;
+
+      const wrap = document.createElement("section");
+      wrap.className = "sec";
+      const h = document.createElement("div");
+      h.className = "sec-h";
+      h.innerHTML = `<span></span><i>${bn(list.length)}</i>`;
+      h.firstChild.textContent = sec.title;
+      wrap.append(h);
+
+      const box = document.createElement("div");
+      box.className = "list";
+      const searching = !!state.query.trim();
+      const open = searching || state.expanded[sec.id];
+      (open ? list : list.slice(0, PREVIEW_COUNT)).forEach((sh) => box.append(itemEl(sec, sh)));
+      wrap.append(box);
+
+      if (!searching && list.length > PREVIEW_COUNT) {
+        const more = document.createElement("button");
+        more.type = "button"; more.className = "more";
+        more.textContent = state.expanded[sec.id] ? "কম দেখুন" : `আরও দেখুন (${bn(list.length - PREVIEW_COUNT)})`;
+        more.addEventListener("click", () => {
+          state.expanded[sec.id] = !state.expanded[sec.id];
+          renderSections();
+        });
+        wrap.append(more);
+      }
+      sectionsEl.append(wrap);
+    });
+
+    if (state.query.trim() && !shown && !tiles.children.length) {
+      const m = document.createElement("div");
+      m.className = "state-msg"; m.textContent = "এই নামে কোনো সাবজেক্ট বা শিট পাওয়া যায়নি।";
+      sectionsEl.append(m);
+    }
+  }
+
+  function renderHome() { renderTiles(); renderSections(); }
+
+  async function loadSheets() {
+    if (DEMO_MODE) { renderHome(); return; }
+    const mine = ++sheetsSeq;
+    state.sheetsStatus = "loading";
+    renderHome();
+
+    const ctrl = new AbortController();
+    const t = setTimeout(() => ctrl.abort(), 25000);
+    try {
+      const url = new URL(CONFIG.API_URL);
+      url.searchParams.set("action", "subjects");
+      const res = await fetch(url.toString(), { signal: ctrl.signal });
+      if (!res.ok) throw new Error("সার্ভার সাড়া দেয়নি (" + res.status + ")");
+      const data = await res.json();
+      if (!data.ok) throw new Error(data.error || "অজানা সমস্যা");
+      if (mine !== sheetsSeq) return;
+      state.sheets = { bcs: data.bcs || [], others: data.others || [] };
+      state.sheetsStatus = "ready";
+    } catch (err) {
+      if (mine !== sheetsSeq) return;
+      state.sheetsStatus = "error";
+      state.sheetsError = String((err && err.message) || err);
+    } finally {
+      clearTimeout(t);
+    }
+    renderHome();
+  }
+
+  searchEl.addEventListener("input", () => {
+    state.query = searchEl.value;
+    renderHome();
+  });
+
+  if (DEMO_MODE) $("#demoNote").hidden = false;
+  showView("home");
+  loadSheets();
+})();
+</script>
+</body>
+</html>
